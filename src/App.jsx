@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { jsPDF } from 'jspdf'
 
+// API base URL configurable via env; fallback to local dev
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/+$/, '')
+
 function App() {
   const [file, setFile] = useState(null)
   const [intervalSec, setIntervalSec] = useState(1)
@@ -113,7 +116,7 @@ function App() {
     form.append('intervalSec', String(intervalSec))
     try {
       setLoading(true)
-      const res = await fetch('http://localhost:5000/upload', {
+      const res = await fetch(`${API_BASE_URL}/upload`, {
         method: 'POST',
         body: form,
       })
@@ -139,7 +142,7 @@ function App() {
       setEvaluating(true)
       
       // Adiciona na fila
-      const res = await fetch('http://localhost:5000/evaluate', {
+      const res = await fetch(`${API_BASE_URL}/evaluate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: jobId, maxFrames: 12 }),
@@ -157,7 +160,7 @@ function App() {
       // Faz polling para verificar o status
       pollIntervalRef.current = setInterval(async () => {
         try {
-          const statusRes = await fetch(`http://localhost:5000/evaluate/${jobId}`)
+          const statusRes = await fetch(`${API_BASE_URL}/evaluate/${jobId}`)
           if (!statusRes.ok) {
             if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
             if (timeoutRef.current) clearTimeout(timeoutRef.current)
